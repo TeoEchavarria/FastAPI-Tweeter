@@ -91,7 +91,7 @@ def signup(user: UserRegister = Body(...)):
         results = json.loads(f.read())
         user_dict = user.dict()
         user_dict["user_id"] = str(user_dict["user_id"])
-        user_dict["birth_date"] = str(user_dict["user_id"])
+        user_dict["birth_date"] = str(user_dict["birth_date"])
         results.append(user_dict)
         f.seek(0)
         f.write(json.dumps(results))
@@ -117,7 +117,22 @@ def login():
     tags = ["Users"]
 )
 def show_all_users():
-    pass
+    """
+    This path operation show all users in the app.
+
+    Parameters:
+        -
+    
+    Return a json with all users in the app, with the following keys:
+        - user_id: UUID
+        - email: Emailstr
+        - first_name: str
+        - last_name: str
+        - birth_date: date
+    """
+    with open("users.json", "r", encoding="utf_8") as f:
+        results = json.loads(f.read())
+        return results 
 
 ### Show a user
 @app.get(
