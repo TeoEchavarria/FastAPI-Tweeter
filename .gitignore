@@ -1,1 +1,6 @@
+# Dir
 venv/
+__pycache__/
+
+# File
+get-pip.py
