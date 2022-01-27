@@ -13,7 +13,7 @@ from pydantic import Field
 # FastAPI
 from fastapi import FastAPI
 from fastapi import status
-from fastapi import Body, Form
+from fastapi import Body, Form, Path
 
 app = FastAPI()
 
@@ -29,6 +29,10 @@ class UserLogin(UserBase):
         min_length=8,
         max_length=64
     )
+
+class LoginOut(BaseModel): 
+    email: EmailStr = Field(...)
+    message: str = Field(default="Login Successfully!")
 
 class User(UserBase):
     first_name: str = Field(
@@ -61,9 +65,7 @@ class Tweet(BaseModel):
     updated_at: Optional[datetime] = Field(default=None)
     by: User = Field(...)
 
-class LoginOut(BaseModel): 
-    email: EmailStr = Field(...)
-    message: str = Field(default="Login Successfully!")
+
 # Path Operations
 
 ## Users
@@ -126,8 +128,8 @@ def Login(email: EmailStr  = Form(...), password: str = Form(...)):
     Returns a LoginOut model with username and message
     """
     with open("users.json", "r+", encoding="utf-8") as f: 
-        datos = json.loads(f.read())
-        for user in datos:
+        data = json.loads(f.read())
+        for user in data:
             if email == user['email'] and password == user['password']:
                 return LoginOut(email=email)
         return LoginOut(email=email, message="Login Unsuccessfully!")
@@ -166,8 +168,36 @@ def show_all_users():
     summary="show a User",
     tags=["Users"]
 )
-def show_a_user():
-    pass
+def show_a_user_id(
+    user_id : Optional[UUID] = Path(
+        None,
+        title = "User ID",
+        example = "3fa85f64-5717-4562-b3fc-2c966f66afa6"
+    )):
+    """
+    Show a user by his id
+
+    This path operation Show a User in the app.
+
+    Parameters:
+    - Request path parameter
+        - user_id: UUID
+
+    Returns a json with the basic user information:
+    - user_id: UUID
+    - email: Emailstr
+    - first_name: str
+    - last_name: str
+    - birth_date: datetime
+    """
+
+    with open("users.json", "r", encoding="utf-8") as f:
+        data = json.loads(f.read())
+        for user in data:
+            if user['user_id'] == str(user_id):
+                return user
+
+
 
 ### Delete a user
 @app.delete(
