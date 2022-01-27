@@ -13,7 +13,7 @@ from pydantic import Field
 # FastAPI
 from fastapi import FastAPI
 from fastapi import status
-from fastapi import Body, Form, Path
+from fastapi import Body, Form, Query , Path
 
 app = FastAPI()
 
@@ -165,7 +165,7 @@ def show_all_users():
     path="/users/{user_id}",
     response_model=User,
     status_code=status.HTTP_200_OK,
-    summary="show a User",
+    summary="show a User by ID",
     tags=["Users"]
 )
 def show_a_user_id(
@@ -198,6 +198,47 @@ def show_a_user_id(
                 return user
 
 
+@app.get(
+    path="/users/{first_or_last_name}/search",
+    response_model=List[User],
+    status_code=status.HTTP_200_OK,
+    summary="show a User by his first name or his last name",
+    tags=["Users"]
+)
+def show_a_user_name(
+    first_name : Optional[str] = Query(
+    None,
+    min_length = 1, 
+    max_length=50,
+    title = "First Name User",
+    example = "string"
+    ), 
+    last_name : Optional[str] = Query(
+    None,
+    min_length = 1, 
+    max_length=50,
+    title = "Last Name User",
+    example = "string"
+    )):
+    """
+    Show a user by first or last name
+
+    This path operation show a User in the app
+
+    Parameters:
+    - Request Query parameters:
+        - first_name: Optional[str]
+        - last_name : Optional[str]
+
+    Returns a List of all users that meet the search values
+    """
+    with open("users.json", "r", encoding="utf-8") as f:
+        data = json.loads(f.read())
+        users = []
+        for user in data:
+            if user['first_name'] == first_name or user['last_name'] == last_name:
+                users.append(user)
+        return users
 
 ### Delete a user
 @app.delete(
