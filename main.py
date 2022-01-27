@@ -13,7 +13,7 @@ from pydantic import Field
 # FastAPI
 from fastapi import FastAPI
 from fastapi import status
-from fastapi import Body
+from fastapi import Body, Form
 
 app = FastAPI()
 
@@ -29,6 +29,10 @@ class UserLogin(UserBase):
         min_length=8,
         max_length=64
     )
+
+class LoginOut(BaseModel): 
+    email: EmailStr = Field(...)
+    message: str = Field(default="Login Successfully!")
 
 class User(UserBase):
     first_name: str = Field(
@@ -109,8 +113,26 @@ def signup(user: UserRegister = Body(...)):
     summary="Login a User",
     tags=["Users"]
 )
-def login():
-    pass
+def Login(email: EmailStr  = Form(...), password: str = Form(...)):
+    """
+    Login
+
+    This path operation login a Person in the app
+
+    Parameters:
+    - Request body parameters:
+        - email: EmailStr
+        - password: str
+
+    Returns a LoginOut model with username and message
+    """
+    with open("users.json", "r", encoding="utf-8") as f: 
+        datos = json.loads(f.read())
+        for user in datos:
+            if email == user['email'] and password == user['password']:
+                return LoginOut(email=email)
+            else:
+                return LoginOut(email=email, message="Login Unsuccessfully!")
 
 ### Show all user
 @app.get(
@@ -182,7 +204,22 @@ def update_a_user():
     tags=["Tweets"]
 )
 def home():
-    return {"Twitter API": "Working!"}
+    """
+    This path operation shows all tweets in the app
+
+    Parameters:
+    -
+
+    Returns a json list with all tweets in the app, with the following keys:
+    - tweet_id: UUID
+    - content:str
+    - created_at: datetime
+    - updated_at: Optional[datetime]
+    - by: User
+    """
+    with open("tweets.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        return results
 
 ### Post a tweet
 @app.post(
