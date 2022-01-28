@@ -1,5 +1,6 @@
 # Python
 import json
+from os import remove
 from uuid import UUID
 from datetime import date
 from datetime import datetime
@@ -190,7 +191,6 @@ def show_a_user_id(
     - last_name: str
     - birth_date: datetime
     """
-
     with open("users.json", "r", encoding="utf-8") as f:
         data = json.loads(f.read())
         for user in data:
@@ -248,8 +248,15 @@ def show_a_user_name(
     summary="Delete a User",
     tags=["Users"]
 )
-def delete_a_user():
-    pass
+def delete_a_user(user_id : UUID = Path(...)):
+    with open("users.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        for user in results:
+            if str(user_id) == str(user["user_id"]):
+                results.remove(user)
+                f.seek(0)
+                f.write(json.dumps(results))
+                return user
 
 ### Update a user
 @app.put(
