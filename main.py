@@ -317,7 +317,6 @@ def update_a_user(user_update : UserRegister = Body(...)):
 
 ## Tweets
 
-
 ### Show all tweets
 @app.get(
     path="/",
@@ -391,9 +390,36 @@ def post(tweet: Tweet = Body(...)):
     summary="Show a tweet",
     tags=["Tweets"]
 )
-def show_a_tweet():
-    pass
+def show_a_tweet(
+    tweet_id : Optional[UUID] = Path(
+        None,
+        title = "User ID",
+        example = "3fa85f64-5717-4562-b3fc-2c966f66afa6"
+    )):
+    """
+    Show a tweet by his id
 
+    This path operation Show a tweet in the app.
+
+    Parameters:
+    - Request path parameter
+        - tweet_id: UUID
+
+    Returns a json with the basic user information:
+    - tweet_id: UUID
+    - email: Emailstr
+    - first_name: str
+    - last_name: str
+    - birth_date: datetime
+    """
+
+    with open("tweets.json", "r", encoding="utf-8") as f:
+        data = json.loads(f.read())
+        for tweet in data:
+            if tweet['tweet_id'] == str(tweet_id):
+                return tweet
+
+### Delete a tweet
 ### Delete a tweet
 @app.delete(
     path="/tweets/{tweet_id}/delete",
