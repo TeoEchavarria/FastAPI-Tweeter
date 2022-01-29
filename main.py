@@ -1,6 +1,5 @@
 # Python
 import json
-from os import remove
 from uuid import UUID
 from datetime import date
 from datetime import datetime
@@ -18,7 +17,9 @@ from fastapi import Body, Form, Query , Path
 
 app = FastAPI()
 
-# Models
+# ----------------------------------------
+#                 Models
+#-----------------------------------------
 
 class UserBase(BaseModel):
     user_id: UUID = Field(...)
@@ -32,7 +33,7 @@ class UserLogin(UserBase):
     )
 
 class LoginOut(BaseModel): 
-    email: EmailStr = Field(...)
+    id: EmailStr = Field(...)
     message: str = Field(default="Login Successfully!")
 
 class User(UserBase):
@@ -67,7 +68,9 @@ class Tweet(BaseModel):
     by: User = Field(...)
 
 
-# Path Operations
+# ----------------------------------------
+#            Path Operations
+#-----------------------------------------
 
 ## Users
 
@@ -96,7 +99,7 @@ def signup(user: UserRegister = Body(...)):
     - last_name: str
     - birth_date: datetime
     """
-    with open("users.json", "r+", encoding="utf-8") as f:
+    with open("users.json", "r+", encoding="utf-8") as f: 
         results = json.loads(f.read())
         user_dict = user.dict()
         user_dict["user_id"] = str(user_dict["user_id"])
@@ -105,8 +108,7 @@ def signup(user: UserRegister = Body(...)):
         f.seek(0)
         f.write(json.dumps(results))
         return user
-
-
+    
 ### Login a user
 @app.post(
     path="/login",
@@ -132,9 +134,9 @@ def Login(email: EmailStr  = Form(...), password: str = Form(...)):
         data = json.loads(f.read())
         for user in data:
             if email == user['email'] and password == user['password']:
-                return LoginOut(email=email)
-        return LoginOut(email=email, message="Login Unsuccessfully!")
-                
+                return LoginOut(id=email)
+        return LoginOut(id=email, message="Login Unsuccessfully!")
+
 ### Show all user
 @app.get(
     path="/users",
@@ -162,6 +164,8 @@ def show_all_users():
         return results
 
 ### Show a user
+
+## Show a user by his ID
 @app.get(
     path="/users/{user_id}",
     response_model=User,
@@ -196,7 +200,6 @@ def show_a_user_id(
         for user in data:
             if user['user_id'] == str(user_id):
                 return user
-
 
 @app.get(
     path="/users/{first_or_last_name}/search",
@@ -249,14 +252,29 @@ def show_a_user_name(
     tags=["Users"]
 )
 def delete_a_user(user_id : UUID = Path(...)):
+    """
+    Delete a User
+
+    This path operation delete a user in the app
+
+    Parameters:
+        - user_id: UUID
+
+    Returns a json with deleted user data:
+        - user_id: UUID
+        - email: Emailstr
+        - first_name: str
+        - last_name: str
+        - birth_date: datetime
+    """
     with open("users.json", "r+", encoding="utf-8") as f:
         results = json.loads(f.read())
         for user in results:
             if str(user_id) == str(user["user_id"]):
                 results.remove(user)
-                f.seek(0)
-                f.write(json.dumps(results))
-                return user
+                with open("users.json", "w", encoding="utf-8") as f:
+                    f.write(json.dumps(results))
+                    return user
 
 ### Update a user
 @app.put(
@@ -266,10 +284,39 @@ def delete_a_user(user_id : UUID = Path(...)):
     summary="Update a User",
     tags=["Users"]
 )
-def update_a_user():
-    pass
+def update_a_user(user_update : UserRegister = Body(...)):
+    """
+    Update User
+
+    This path operation update a user information in the app and save in the database
+
+    Parameters:
+    - user_id: UUID
+    - Request body parameter:
+        - **user: User** -> A user model with user_id, email, first name, last name, birth date and password
+    
+    Returns a user model with user_id, email, first_name, last_name and birth_date
+    """
+    user_dict = user_update.dict()
+    user_dict["user_id"] = str(user_dict["user_id"])
+    user_dict["birth_date"] = str(user_dict["birth_date"])
+    with open("users.json", "r+", encoding="utf-8") as f: 
+        results = json.loads(f.read())
+        for user in results:
+            if user["user_id"] == user_dict["user_id"] and user["password"] == user_dict["password"]:
+                if user_dict["first_name"] != "":
+                    results[results.index(user)]["first_name"] = user_dict["first_name"]
+                if user_dict["last_name"] != "":
+                    results[results.index(user)]["last_name"] = user_dict["last:_name"]
+                if user_dict["email"] != "":
+                    results[results.index(user)]["email"] = user_dict["email"]
+                with open("users.json", "w", encoding="utf-8") as f:
+                    f.seek(0)
+                    f.write(json.dumps(results))
+                return user
 
 ## Tweets
+
 
 ### Show all tweets
 @app.get(
