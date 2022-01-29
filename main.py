@@ -428,8 +428,38 @@ def show_a_tweet(
     summary="Delete a tweet",
     tags=["Tweets"]
 )
-def delete_a_tweet():
-    pass
+### Delete a tweet
+@app.delete(
+    path="/tweets/{tweet_id}/delete",
+    response_model=Tweet,
+    status_code=status.HTTP_200_OK,
+    summary="Delete a tweet",
+    tags=["Tweets"]
+)
+def delete_a_tweet(tweet_id : UUID = Path(...)):
+    """
+    Delete a Tweet
+
+    This path operation delete a Tweet in the app
+
+    Parameters:
+        - tweet_id: UUID
+
+    Returns a json with deleted tweet data:
+        - tweet_id: UUID
+        - email: Emailstr
+        - first_name: str
+        - last_name: str
+        - birth_date: datetime
+    """
+    with open("tweets.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        for tweet in results:
+            if str(tweet_id) == str(tweet["tweet_id"]):
+                results.remove(tweet)
+                with open("tweets.json", "w", encoding="utf-8") as f:
+                    f.write(json.dumps(results))
+                    return tweet
 
 ### Update a tweet
 @app.put(
