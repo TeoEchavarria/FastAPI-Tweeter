@@ -469,5 +469,28 @@ def delete_a_tweet(tweet_id : UUID = Path(...)):
     summary="Update a tweet",
     tags=["Tweets"]
 )
-def update_a_tweet():
-    pass
+def update_a_tweet(tweet_update : Tweet = Body(...)):
+    """
+    Update User
+
+    This path operation update a user information in the app and save in the database
+
+    Parameters:
+    - user_id: UUID
+    - Request body parameter:
+        - **user: User** -> A user model with user_id, email, first name, last name, birth date and password
+    
+    Returns a user model with user_id, email, first_name, last_name and birth_date
+    """
+    tweet_dict = tweet_update.dict()
+    tweet_dict["tweet_id"] = str(tweet_dict["tweet_id"])
+    with open("tweets.json", "r+", encoding="utf-8") as f: 
+        results = json.loads(f.read())
+        for tweet in results:
+            if tweet["tweet_id"] == tweet_dict["tweet_id"]:
+                if tweet_dict["content"] != "":
+                    results[results.index(tweet)]["content"] = tweet_dict["content"]
+                with open("tweets.json", "w", encoding="utf-8") as f:
+                    f.seek(0)
+                    f.write(json.dumps(results))
+                return tweet
